@@ -2,7 +2,6 @@ import React from "react";
 import { MUIBox, VerticalBox } from "../../../components/MUI/MUIComponents";
 import { Table } from "../../../components/Table";
 import { ConvertCSVToJson } from "../../../utils/utils";
-
 import ExportToolbar from "./ExportToolbar";
 
 const Export = () => {
@@ -79,8 +78,28 @@ const Export = () => {
     }
   };
 
-  const handleEmailDataButton = () => {
-    //
+  const handleEmailDataButton = async () => {
+    const data = filteredData
+    const filename = 'filtered_data'
+
+    try {
+      const response = await fetch('http://localhost:3001/send-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ data, filename }),
+      });
+  
+      if (response.ok) {
+        console.log('Email sent successfully');
+      } else {
+        console.error('Email sending failed');
+      }
+    } catch (error) {
+      console.error('Error sending email:', error);
+    }
+  
   };
 
   return (

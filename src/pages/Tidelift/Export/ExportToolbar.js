@@ -39,7 +39,7 @@ const ExportToolbar = (props) => {
         />
       </FormGroup>
       <MUIButton variant="contained" onClick={() => handleEmailDataButton()}>
-        Email data
+        Send email
       </MUIButton>
     </HorizontalBox>
   );
