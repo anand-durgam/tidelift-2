@@ -1,4 +1,4 @@
-import { Box, Toolbar, Typography, Button, Stack } from "@mui/material";
+import { Box, Toolbar, Typography, Button, Stack, DialogActions } from "@mui/material";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 
 export const Heading = (props) => {
@@ -36,3 +36,7 @@ export const VerticalBox = (props) => {
 export const HorizontalBox = (props) => {
   return <Stack direction={'row'} {...props}>{props.children}</Stack>;
 };
+
+export const FormActions = (props) => {
+  return <DialogActions {...props}>{props.children}</DialogActions>;
+}

@@ -1,9 +1,19 @@
 import React from "react";
 import { MUIBox, VerticalBox } from "../../../components/MUI/MUIComponents";
 import { Table } from "../../../components/Table";
-import { ConvertCSVToJson } from "../../../utils/utils";
-
+import { ConvertXLSXToJson } from "../../../utils/utils";
 import ExportToolbar from "./ExportToolbar";
+import {
+  GetFilteredData,
+  GetTableColumns,
+  RemoveDuplicates,
+} from "./Export.function";
+import Form from "../../../components/Form/Form";
+import { EmailForm } from "./EmailForm";
+import Pako from "pako";
+// import { useForm } from 'react-hook-form';
+// import { yupResolver } from '@hookform/resolvers/yup';
+// import * as yup from 'yup';
 
 const Export = () => {
   const [tableData, setTableData] = React.useState([]);
@@ -11,105 +21,152 @@ const Export = () => {
   const [tableColumns, setTableColumns] = React.useState([]);
   const [showDuplicates, setShowDuplicates] = React.useState(false);
   const [searchValue, setSearchValue] = React.useState("");
+  const [openSendEmailForm, setOpenSendEmailForm] = React.useState(false);
+  const handleCloseEmailForm = () => setOpenSendEmailForm(false);
+  const [groups, setGroups] = React.useState([]);
 
-  // Remove duplicates from the actual data
-  const removeDuplicates = (data) => {
-    const seen = new Set();
-    const unique = [];
+  // Form values and validations
+  // const initialValues = {
+  //   groups: []
+  // }
+  // const validationSchema = yup
+  // .object()
+  // .shape({
+  //   groups: yup.array().of(yup.string()).required(),
+  // })
+  // .required();
 
-    for (const entry of data) {
-      const key = `${entry.project}-${entry.groups}-${entry.transitive_package}`;
-      if (!seen.has(key)) {
-        seen.add(key);
-        unique.push(entry);
-      }
-    }
-    return unique;
-  };
-
-  // Create Table columns using the excel data
-  const getTableColumns = (columns) => {
-    const tableColumnsArray = columns.map((eachColName) => {
-      return { field: eachColName, headerName: eachColName, width: 250 };
-    });
-    return tableColumnsArray;
-  };
+  // const { setValue } = useForm({
+  //   values: initialValues,
+  //   resolver: yupResolver(validationSchema),
+  // })
 
   // Handle file after selecting an excel file
   const handleFileData = async (fileData) => {
-    const jsonData = await ConvertCSVToJson(fileData);
-    // const jsonData = await ConvertXLSXToJson(fileData);
-    const columnNames = Object.keys(jsonData[0]);
-    const tableColumnsFormat = getTableColumns(columnNames);
-    setTableColumns(tableColumnsFormat);
-    setTableData(jsonData);
-    setFilteredData(removeDuplicates(jsonData));
-  };
-
-  // filter data
-  const getFilteredData = (value) => {
-    return tableData.filter(
-      (eachRow) =>
-        eachRow.project.includes(value) ||
-        eachRow.transitive_package.includes(value) ||
-        eachRow.groups.includes(value)
-    );
+    ConvertXLSXToJson(fileData, (jsonData) => {
+      const columnNames = Object.keys(jsonData[0]);
+      const tableColumnsFormat = GetTableColumns(columnNames);
+      setTableColumns(tableColumnsFormat);
+      setTableData(jsonData);
+      setFilteredData(RemoveDuplicates(jsonData));
+    });
   };
 
   // Filter data based on the search text
   const handleSearchBox = (event) => {
     setSearchValue(event.target.value);
-    const searchFilteredData = getFilteredData(event.target.value);
+    const searchFilteredData = GetFilteredData(tableData, event.target.value);
     if (showDuplicates) {
       setFilteredData(searchFilteredData);
     } else {
-      const uniqueDataArray = removeDuplicates(searchFilteredData);
+      const uniqueDataArray = RemoveDuplicates(searchFilteredData);
       setFilteredData(uniqueDataArray);
     }
   };
 
   const handleShowDuplicatesCheckbox = (event) => {
     setShowDuplicates(event.target.checked);
-    const duplicateData = getFilteredData(searchValue);
+    const duplicateData = GetFilteredData(tableData, searchValue);
     if (event.target.checked) {
       setFilteredData(duplicateData);
     } else {
-      const uniqueDataArray = removeDuplicates(duplicateData);
+      const uniqueDataArray = RemoveDuplicates(duplicateData);
       setFilteredData(uniqueDataArray);
     }
   };
 
-  const handleEmailDataButton = () => {
-    //
+  const handleEmailDataButton = async () => {
+    const filename = "filtered_data";
+    const data = filteredData.map((eachRecord) => {
+      return {
+        package_name: eachRecord.transitive_package,
+        version: eachRecord.transitive_version,
+        recommended_version: eachRecord.stable_transitive_version,
+        note: "Please ensure latest stable non-vulnerable version that fits your application in case of conflicts",
+      };
+    });
+
+    // const jsonData = JSON.stringify({ data, filename });
+    const jsonData = JSON.stringify(data);
+    const compressedData = Pako.deflate(jsonData, { to: "string" });
+
+    try {
+      const response = await fetch("http://localhost:3001/send-email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          'content-encoding': 'gzip',
+        },
+        body: JSON.stringify(compressedData),
+      });
+
+      if (response.ok) {
+        console.log("Email sent successfully");
+        handleCloseEmailForm();
+      } else {
+        console.error("Email sending failed");
+      }
+    } catch (error) {
+      console.error("Error sending email:", error);
+    }
+  };
+
+  const handleSendEmailButton = () => {
+    const groupsData = filteredData.map((eachRecord) => {
+      return {
+        id: eachRecord.groups,
+        label: eachRecord.groups,
+      };
+    });
+    const uniqueData = Array.from(
+      new Set(groupsData.map((item) => JSON.stringify(item)))
+    ).map((item) => JSON.parse(item));
+    setGroups(uniqueData);
+    setOpenSendEmailForm(true);
   };
 
   return (
-    <MUIBox sx={{ padding: "15px" }}>
-      <VerticalBox spacing={1}>
-        <ExportToolbar
-          handleSearchBox={handleSearchBox}
-          handleFileData={handleFileData}
-          handleShowDuplicatesCheckbox={handleShowDuplicatesCheckbox}
-          handleEmailDataButton={handleEmailDataButton}
-        />
-        <MUIBox sx={{ height: "80vh" }}>
-          <Table
-            rows={filteredData}
-            columns={tableColumns}
-            initialState={{
-              pagination: {
-                paginationModel: {
-                  pageSize: 5,
-                },
-              },
-            }}
-            pageSizeOptions={[5]}
-            checkboxSelection
-            disableRowSelectionOnClick
+    <>
+      <MUIBox sx={{ padding: "15px" }}>
+        <VerticalBox spacing={1}>
+          <ExportToolbar
+            handleSearchBox={handleSearchBox}
+            handleFileData={handleFileData}
+            handleShowDuplicatesCheckbox={handleShowDuplicatesCheckbox}
+            setOpenSendEmailForm={setOpenSendEmailForm}
+            handleSendEmailButton={handleSendEmailButton}
           />
-        </MUIBox>
-      </VerticalBox>
-    </MUIBox>
+          <MUIBox sx={{ height: "80vh" }}>
+            <Table
+              rows={filteredData}
+              columns={tableColumns}
+              initialState={{
+                pagination: {
+                  paginationModel: {
+                    pageSize: 5,
+                  },
+                },
+              }}
+              pageSizeOptions={[5]}
+              checkboxSelection
+              disableRowSelectionOnClick
+            />
+          </MUIBox>
+        </VerticalBox>
+      </MUIBox>
+      <Form
+        open={openSendEmailForm}
+        onClose={handleCloseEmailForm}
+        formContent={
+          <EmailForm
+            handleCloseEmailForm={handleCloseEmailForm}
+            handleEmailDataButton={handleEmailDataButton}
+            groups={groups}
+          />
+        }
+        title={"Send email"}
+      />
+    </>
   );
 };
 

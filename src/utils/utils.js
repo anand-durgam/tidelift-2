@@ -15,8 +15,8 @@ export const ConvertCSVToJson = async (data) => {
   }
 };
 
-export const ConvertXLSXToJson = async (data) => {
-  if (data) {
+export const ConvertXLSXToJson = (data, callback) => {
+  if (data instanceof Blob) {
     const reader = new FileReader();
     reader.onload = (e) => {
       const content = e.target.result;
@@ -24,7 +24,27 @@ export const ConvertXLSXToJson = async (data) => {
       const sheetName = workbook.SheetNames[0];
       const sheet = workbook.Sheets[sheetName];
       const jsonData = XLSX.utils.sheet_to_json(sheet);
-      return jsonData;
+      const modifiedJsonData = jsonData.map((eachRecord) => {
+        const unique_id = uuid();
+        return { ...eachRecord, id: unique_id };
+      });
+      callback(modifiedJsonData);
     };
+    reader.readAsArrayBuffer(data);
+  } else {
+    console.error("Invalid data type. Expected a Blob or File object.");
   }
+};
+
+export const convertDataToExcel = (data, filename) => {
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, filename);
+  const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+  const blob = new Blob([excelBuffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+  return blob;
+  // const url = URL.createObjectURL(blob);
+  // window.open(url);
 };
