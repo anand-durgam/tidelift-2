@@ -15,22 +15,22 @@ const VisuallyHiddenInput = styled("input")({
 });
 
 export const UploadButton = (props) => {
-  const { handleFileData } = props
+  const { handleFileData } = props;
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const data = event.target.result;
-        handleFileData(data);
-      };
-      reader.readAsText(file);
+      handleFileData(file);
     }
   };
 
   return (
-    <MUIButton component="label" variant="contained" startIcon={<UploadIcon />} onChange={(e) => handleFileUpload(e)} >
+    <MUIButton
+      component="label"
+      variant="contained"
+      startIcon={<UploadIcon />}
+      onChange={(e) => handleFileUpload(e)}
+    >
       {`${props.label}` || "Upload file"}
       <VisuallyHiddenInput type="file" />
     </MUIButton>

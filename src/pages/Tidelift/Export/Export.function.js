@@ -23,6 +23,7 @@ export const GetTableColumns = (columns) => {
 
 // filter data
 export const GetFilteredData = (data, value) => {
+  console.log(data)
   return data.filter(
     (eachRow) =>
       eachRow.project.includes(value) ||

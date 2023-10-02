@@ -12,16 +12,16 @@ export default function Form(props) {
     open,
     onClose,
     formContent,
-    maxWidth = "100%",
+    maxWidth = "60vw",
+    minWidth = "50vw",
     title,
     closable = true,
     contentFontSize = "1rem",
     className = "",
   } = props;
-  const { content } = formContent;
   return (
     <div>
-      <CustomFormDialog open={open} maxWidth={maxWidth} className={className}>
+      <CustomFormDialog open={open} maxWidth={maxWidth} minWidth={minWidth} className={className}>
         <CustomDialogTitle>
           {title}
           {closable && (
@@ -31,7 +31,7 @@ export default function Form(props) {
           )}
         </CustomDialogTitle>
         <CustomDialogContent fontSize={contentFontSize}>
-          {content}
+          {formContent}
         </CustomDialogContent>
       </CustomFormDialog>
     </div>

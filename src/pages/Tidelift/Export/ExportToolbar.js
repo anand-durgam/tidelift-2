@@ -16,7 +16,7 @@ const ExportToolbar = (props) => {
     handleSearchBox,
     handleShowDuplicatesCheckbox,
     handleFileData,
-    setOpenSendEmailForm,
+    handleSendEmailButton,
   } = props;
 
   return (
@@ -38,7 +38,7 @@ const ExportToolbar = (props) => {
           label="Show duplicates"
         />
       </FormGroup>
-      <MUIButton variant="contained" onClick={() => setOpenSendEmailForm(true)}>
+      <MUIButton variant="contained" onClick={() => handleSendEmailButton()}>
         Send email
       </MUIButton>
     </HorizontalBox>
