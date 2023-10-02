@@ -23,11 +23,24 @@ export const GetTableColumns = (columns) => {
 
 // filter data
 export const GetFilteredData = (data, value) => {
-  console.log(data)
-  return data.filter(
-    (eachRow) =>
-      eachRow.project.includes(value) ||
-      eachRow.transitive_package.includes(value) ||
-      eachRow.groups.includes(value)
-  );
+  return data.filter((eachRow) => {
+    const projectIncludes =
+      eachRow.project && eachRow.project.indexOf(value) !== -1;
+    const transitivePackageIncludes =
+      eachRow.transitive_package &&
+      eachRow.transitive_package.indexOf(value) !== -1;
+
+    const groupsString = eachRow.groups || "";
+    const groupsIncludes = groupsString.indexOf(value) !== -1;
+
+    const depChainString = eachRow.dep_chain || "";
+    const depChainIncludes = depChainString.indexOf(value) !== -1;
+
+    return (
+      projectIncludes ||
+      transitivePackageIncludes ||
+      groupsIncludes ||
+      depChainIncludes
+    );
+  });
 };
