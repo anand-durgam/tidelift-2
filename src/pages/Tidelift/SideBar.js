@@ -10,7 +10,7 @@ import ListItemText from "@mui/material/ListItemText";
 import MailIcon from "@mui/icons-material/Mail";
 import { MUIToolbar } from "../../components/MUI/MUIComponents";
 
-const drawerWidth = 240;
+const drawerWidth = '12vw';
 
 export const SideBar = (props) => {
   const { SideBarItems, handleSideBarItems } = props;
@@ -20,6 +20,8 @@ export const SideBar = (props) => {
     setSelectedItem(item); 
     handleSideBarItems(item);
   };
+
+  console.log(selectedItem)
 
   const drawer = (
     <div>

@@ -86,8 +86,7 @@ const Export = () => {
       };
     });
 
-    // const jsonData = JSON.stringify({ data, filename });
-    const jsonData = JSON.stringify(data);
+    const jsonData = JSON.stringify({ data, filename });
     const compressedData = Pako.deflate(jsonData, { to: "string" });
 
     try {
@@ -95,7 +94,7 @@ const Export = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          'content-encoding': 'gzip',
+          "content-encoding": "gzip",
         },
         body: JSON.stringify(compressedData),
       });
@@ -127,33 +126,31 @@ const Export = () => {
 
   return (
     <>
-      <MUIBox sx={{ padding: "15px" }}>
-        <VerticalBox spacing={1}>
-          <ExportToolbar
-            handleSearchBox={handleSearchBox}
-            handleFileData={handleFileData}
-            handleShowDuplicatesCheckbox={handleShowDuplicatesCheckbox}
-            setOpenSendEmailForm={setOpenSendEmailForm}
-            handleSendEmailButton={handleSendEmailButton}
-          />
-          <MUIBox sx={{ height: "80vh" }}>
-            <Table
-              rows={filteredData}
-              columns={tableColumns}
-              initialState={{
-                pagination: {
-                  paginationModel: {
-                    pageSize: 5,
-                  },
+      <VerticalBox spacing={1} sx={{ padding: "15px", width: "100%" }}>
+        <ExportToolbar
+          handleSearchBox={handleSearchBox}
+          handleFileData={handleFileData}
+          handleShowDuplicatesCheckbox={handleShowDuplicatesCheckbox}
+          setOpenSendEmailForm={setOpenSendEmailForm}
+          handleSendEmailButton={handleSendEmailButton}
+        />
+        <MUIBox sx={{ height: "80vh" }}>
+          <Table
+            rows={filteredData}
+            columns={tableColumns}
+            initialState={{
+              pagination: {
+                paginationModel: {
+                  pageSize: 5,
                 },
-              }}
-              pageSizeOptions={[5]}
-              checkboxSelection
-              disableRowSelectionOnClick
-            />
-          </MUIBox>
-        </VerticalBox>
-      </MUIBox>
+              },
+            }}
+            pageSizeOptions={[5]}
+            checkboxSelection
+            disableRowSelectionOnClick
+          />
+        </MUIBox>
+      </VerticalBox>
       <Form
         open={openSendEmailForm}
         onClose={handleCloseEmailForm}
